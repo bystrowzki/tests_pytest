@@ -1,59 +1,44 @@
-import pytest
+import unittest
 from unittest import mock
-from code import new_document, delete_document, list_of_docs, new_shelf, documents, directories
+from code2 import new_folder, get_folders_files_list
 
 
-class TestCode:
+class TestCode(unittest.TestCase):
 
-    def setup(self):
+    def setUp(self):
         print('method setup')
 
-    def teardown(self):
+    def tearDown(self):
         print('method teardown')
 
-    def test_list_of_docs(self):
-        data = []
-        for items in documents:
-            for key in items.keys():
-                data.append(items[key])
-        assert list_of_docs(documents) == data
+    def test_get_folders_files_list(self):
+        self.assertEqual(get_folders_files_list()[0], 200)
 
-    def test_delete_doc(self):
-        n = len(documents)
-        with mock.patch('builtins.input', return_value='10006'):
-            assert delete_document(documents, directories) == n-1
+    def test_new_folder(self):
+        folder_name = 'test'
+        with mock.patch('builtins.input', return_value=folder_name):
+            self.assertEqual(new_folder(), 201)
 
-    def test_delete_doc_fail(self):
-        n = len(documents)
-        with mock.patch('builtins.input', return_value='10005'):
-            assert not delete_document(documents, directories) == n-1
+    @unittest.expectedFailure
+    def test_new_folder_fail(self):
+        folder_name = 'test'
+        with mock.patch('builtins.input', return_value=folder_name):
+            self.assertEqual(new_folder(), 201)
 
-    def test_new_doc(self):
-        n = len(documents)
-        with mock.patch('builtins.input', return_value='145'):
-            with mock.patch('builtins.input', return_value='name'):
-                with mock.patch('builtins.input', return_value='doc'):
-                    with mock.patch('builtins.input', return_value='x'):
-                        if new_document(documents, directories) == KeyError:
-                            with mock.patch('builtins.input', return_value='1'):
-                                assert new_document(documents, directories) == n+1
-                        else:
-                            assert new_document(documents, directories) == n+1
+    def test_new_folder_2(self):
+        folder_name = 'folder5'
+        with mock.patch('builtins.input', return_value=folder_name):
+            new_folder()
+            list = []
+            for x in get_folders_files_list()[1]['_embedded']['items']:
+                if folder_name == x['name']:
+                    list.append(x['name'])
+                    n = get_folders_files_list()[1]['_embedded']['items'].index(x)
+                    print(n, list)
+                    self.assertIn(list[0], get_folders_files_list()[1]['_embedded']['items'][n]['name'])
+                else:
+                    continue
 
-    def test_new_doc_fail(self):
-        with mock.patch('builtins.input', return_value='145'):
-            with mock.patch('builtins.input', return_value='name'):
-                with mock.patch('builtins.input', return_value='doc'):
-                    with mock.patch('builtins.input', return_value='x'):
-                        if new_document(documents, directories) == KeyError:
-                            with mock.patch('builtins.input', return_value='x'):
-                                assert new_document(documents, directories) == KeyError
 
-    def test_new_shelf(self):
-        n = len(directories)
-        with mock.patch('builtins.input', return_value='4'):
-            assert new_shelf(directories) == n + 1
-
-    def test_new_shelf_fail(self):
-        with mock.patch('builtins.input', return_value='1'):
-            assert new_shelf(directories) == KeyError
+if __name__ == '__main__':
+    unittest.main()
